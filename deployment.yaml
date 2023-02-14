@@ -1,0 +1,54 @@
+# Service file for kafka-streams-demo
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kafkaflinkmongo
+  name: kafkaflinkmongo
+  namespace:
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8080
+  selector:
+    app: kafkaflinkmongo
+
+---
+# deployment file for kafka-streams-demo
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kafkaflinkmongo
+  name: kafkaflinkmongo
+  namespace:
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafkaflinkmongo
+  template:
+    metadata:
+      labels:
+        app: kafkaflinkmongo
+    spec:
+      hostname: kafkaflinkmongo
+      containers:
+        - env:
+            - name: KAFKA_BROKER_ID
+              value: "1"
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: kafka-broker:9092
+            - name: KAFKA_LISTENERS
+              value: PLAINTEXT://:9092
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: PLAINTEXT://kafka-broker:9092
+            - name: KAFKA_CREATE_TOPICS
+              value: "input-topic:1:1,output-topic:1:1"
+          image: bluehydrogen/kstream-to-kstream:latest
+          imagePullPolicy: IfNotPresent
+          name: kstreams
+
+          ports:
+            - containerPort: 8080
